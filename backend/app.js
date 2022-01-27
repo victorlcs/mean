@@ -1,25 +1,28 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const Post = require('./models/post');
 
+const postsRoutes = require("./routes/posts");
 const app = express();
 
 mongoose.connect('mongodb+srv://victor:39SX9P1IkxSXX7lc@cluster0.exzto.mongodb.net/node-angular?retryWrites=true&w=majority').then(
     ()=>{
         console.log('Connected to database!');
     }).catch(
-        ()=> {
-            console.log('Connection failed!');
+        (x)=> {
+            console.log('Connection failed! : '+ x);
         }
     );
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:false}));
+app.use("/images",express.static(path.join("backend/images")));
 
 app.use((req,res,next)=> {
     res.setHeader('Access-Control-Allow-Origin','*');
     res.setHeader('Access-Control-Allow-Headers','Origin, X-Requested-With,Content-Type,Accept');
-    res.setHeader('Access-Control-Allow-Methods','GET,POST,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods','GET,POST,PATCH,PUT,DELETE,OPTIONS');
     next();
 });
 
@@ -28,26 +31,6 @@ app.use((req,res,next)=> {
     next();
 });
 
-app.post("/api/posts",(req,res,next) => {
-    const post = new Post({
-        title: req.body.title,
-        content: req.body.content
-    });
-    post.save();
-    console.log(post);
-    res.status(201).json({
-        message:'Post added successfully'
-    });
-});
-
-app.get("/api/posts",(req,res,next)=> {
-    Post.find().then(documents => {
-        res.status(200).json({
-            message:'post successfully',
-            posts:documents
-        });
-    });
-    
-});
+app.use("/api/posts",postsRoutes);
 
 module.exports = app;
