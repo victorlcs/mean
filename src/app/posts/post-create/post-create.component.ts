@@ -42,7 +42,8 @@ export class PostCreateComponent implements OnInit {
             id: postData._id,
             content: postData.content,
             title:postData.title,
-            imagePath:postData.imagePath
+            imagePath:postData.imagePath,
+            creator:postData.creator
           }
           this.form.patchValue({'title':this.post.title,'content':this.post.content, 'image':this.post.imagePath});
         });

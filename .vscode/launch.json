@@ -1,9 +1,18 @@
 {
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ng serve",
+      "name": "Debug Backend",
+      "type": "pwa-node",
+      "request": "launch",
+      "command": "npm run test",
+      "skupFiles":[
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}\\server.js"
+    },
+    {
+      "name": "Debug Frontend",
       "type": "pwa-chrome",
       "request": "launch",
       "preLaunchTask": "npm: start",
