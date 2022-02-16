@@ -1,8 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { AuthData } from './auth-data.model';
+import { environment } from 'src/environments/environment';
+
+const BACKEND_URL = environment.apiUrl + "/user/";
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +15,8 @@ export class AuthService {
   private token: string;
   private tokenTimer: any;
   private userId: string;
-  private authStatusListener = new Subject<boolean>();
+  //private authStatusListener = new Subject<boolean>();
+  private authStatusListener = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -38,9 +42,10 @@ export class AuthService {
       password:password
     };
 
-    this.http.post("http://localhost:3000/api/user/signup",authData).subscribe(response =>{
-      console.log(response);
-    })
+    this.http.post(BACKEND_URL+"/signup",authData).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (error) => this.authStatusListener.next(false)
+    });
   }
 
   login(email:string,password:string) {
@@ -48,7 +53,10 @@ export class AuthService {
       email:email,
       password:password
     };
-    this.http.post<{token:string,expiresIn:number, userId:string}>("http://localhost:3000/api/user/login",authData).subscribe(response =>{
+    this.http.post<{token:string,expiresIn:number, userId:string}>(BACKEND_URL+"/login",authData)
+    .subscribe(
+    {
+      next:response =>{
       const token = response.token
       this.token = token;
       if (token) {
@@ -63,7 +71,9 @@ export class AuthService {
         this.saveAuthData(token,expirationDate,this.userId);
         this.router.navigate(['/']);
       }
-    })
+    },
+    error: error => this.authStatusListener.next(false)
+  })
   }
 
   autoAuthUser(){
@@ -112,13 +122,13 @@ export class AuthService {
     const token = localStorage.getItem('token');
     const expirationDate = localStorage.getItem('expiration');
     const userId = localStorage.getItem('userId');
-    if (!token || expirationDate) {
+    if (!token || !expirationDate) {
       return null;
     }
     return {
       token:token,
       expirationDate: new Date(expirationDate),
-      userId: this.userId
+      userId: userId
     }
   }
 }
