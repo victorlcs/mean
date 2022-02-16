@@ -13,7 +13,8 @@ const MIME_TYPE_MAP = {
       if (isValid) {
         error = null;
       }
-      cb(error, "backend/images");
+      cb(error, "images"); //path is relative to server.js
+      //cb(error, "backend/images"); //path is relative to server.js
     },
     filename: (req, file, cb) => {
       const name = file.originalname.toLowerCase().split(" ").join("-");
@@ -22,4 +23,4 @@ const MIME_TYPE_MAP = {
     },
   });
 
-  module.exports = multer({ storage: storage }).single("image");
+  module.exports = multer({ storage: storage }).single("image"); //multer will extract one SINGLE file from the request body "image" property

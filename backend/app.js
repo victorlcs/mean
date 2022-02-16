@@ -19,7 +19,13 @@ mongoose.connect(`mongodb+srv://victor:${process.env.MONGO_ATLAS_PW}@cluster0.ex
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:false}));
-app.use("/images",express.static(path.join("backend/images")));
+//app.use(express.static(path.join("images"))); //So client is able to access all the files inside /images by "http://localhost:3000/png1.png"
+
+//For Development use this :
+//app.use("/images",express.static(path.join("backend/images"))); //by setting the 'root' paramerter "/images", URL has to be like "http://localhost:3000/images/png1.png"
+//For Production use this  :
+app.use("/images",express.static("images")); //by setting the 'root' paramerter "/images", URL has to be like "http://localhost:3000/images/png1.png"
+//Some info from documentation : However, the path that you provide to the express.static function is relative to the directory from where you launch your node process.
 
 app.use((req,res,next)=> {
     res.setHeader('Access-Control-Allow-Origin','*');
