@@ -13,8 +13,11 @@ const MIME_TYPE_MAP = {
       if (isValid) {
         error = null;
       }
-      cb(error, "images"); //path is relative to server.js
-      //cb(error, "backend/images"); //path is relative to server.js
+      //For Production
+      //cb(error, "images"); //path is relative to server.js
+
+      //For Development
+      cb(error, "backend/images"); //path is relative to server.js
     },
     filename: (req, file, cb) => {
       const name = file.originalname.toLowerCase().split(" ").join("-");

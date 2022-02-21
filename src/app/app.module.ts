@@ -13,6 +13,8 @@ import { ErrorComponent } from './error/error.component';
 import { AngularMaterialModule } from './angular-material.module';
 import { PostModule } from './posts/post.module';
 import { AuthModule } from './auth/auth.module';
+import { StoreModule } from '@ngrx/store';
+import { postReducer } from './posts/store/post.reducer';
 
 @NgModule({
   declarations: [
@@ -28,7 +30,8 @@ import { AuthModule } from './auth/auth.module';
     FormsModule,
     AngularMaterialModule,
     PostModule,
-    AuthModule
+    AuthModule,
+    StoreModule.forRoot({"post":postReducer})
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

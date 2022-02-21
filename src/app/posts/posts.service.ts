@@ -4,15 +4,21 @@ import { Router } from '@angular/router';
 import { map, Subject } from 'rxjs';
 import { Post } from './post.model';
 import { environment } from 'src/environments/environment';
+import { Store } from '@ngrx/store';
+import { AddPost, SetPostCount } from './store/post.action';
+import * as fromPost from "./store/post.reducer";
 
 const BACKEND_URL = environment.apiUrl + "/posts/";
 
 @Injectable({ providedIn: 'root' })
 export class PostsService {
-  private posts: Post[] = [];
-  private postsUpdated = new Subject<{posts:Post[],postCount:number}>();
+  //private posts: Post[] = [];
+  //private postsUpdated = new Subject<{posts:Post[],postCount:number}>();
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private PostStore: Store<fromPost.AppState>) {}
 
   getPosts(postsPerPage: number, currentPage: number) {
     const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
@@ -37,15 +43,16 @@ export class PostsService {
         })
       )
       .subscribe((transformedPosts) => {
-        console.log(transformedPosts);
-        this.posts = transformedPosts.posts;
-        this.postsUpdated.next({posts:[...this.posts],postCount:transformedPosts.maxPosts});
+        //this.posts = transformedPosts.posts;
+        //this.postsUpdated.next({posts:[...this.posts],postCount:transformedPosts.maxPosts});
+        this.PostStore.dispatch(new AddPost(transformedPosts.posts));
+        this.PostStore.dispatch(new SetPostCount(transformedPosts.maxPosts));
       });
   }
 
-  getPostUpdateListener() {
-    return this.postsUpdated.asObservable();
-  }
+  // getPostUpdateListener() {
+  //   return this.postsUpdated.asObservable();
+  // }
 
   getPost(id: string) {
     return this.http.get<{

@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { PageEvent } from "@angular/material/paginator";
+import { Store } from "@ngrx/store";
 import { Subscription } from 'rxjs';
 import { AuthService } from "src/app/auth/auth.service";
-
 import { Post } from "../post.model";
 import { PostsService } from "../posts.service";
+import * as fromPost from "../store/post.reducer";
 
 @Component({
   selector: "app-post-list",
@@ -28,18 +29,27 @@ export class PostListComponent implements OnInit, OnDestroy {
   userIsAuthenticated = false;
   userId:string;
 
-  constructor(public postsService: PostsService, private authService:AuthService) {}
+  constructor(
+    public postsService: PostsService, 
+    private authService:AuthService,
+    private PostStore:Store<fromPost.AppState>) {}
 
   ngOnInit() {
     this.isLoading = true;
     this.postsService.getPosts(this.postsPerPage,this.currentPage);
     this.userId = this.authService.getUserId();
-    this.postsSub = this.postsService.getPostUpdateListener()
-      .subscribe((postData: {posts:Post[],postCount:number}) => {
+    // this.postsSub = this.postsService.getPostUpdateListener()
+    //   .subscribe((postData: {posts:Post[],postCount:number}) => {
+    //     this.isLoading = false;
+    //     this.posts = postData.posts;
+    //     this.totalPosts = postData.postCount;
+    //   });
+    this.PostStore.select('post').subscribe((postData) => {
+        console.log(postData);
         this.isLoading = false;
-        this.posts = postData.posts;
+        this.posts = postData.post;
         this.totalPosts = postData.postCount;
-      });
+    });
     this.userIsAuthenticated = this.authService.getIsAuth();
     this.authStatusSub = this.authService.getAuthStatusListener().subscribe(isAuthenticated => {
       this.userIsAuthenticated = isAuthenticated;
@@ -48,7 +58,7 @@ export class PostListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.postsSub.unsubscribe();
+    //this.postsSub.unsubscribe();
     this.authStatusSub.unsubscribe();
   }
 
