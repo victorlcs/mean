@@ -14,7 +14,9 @@ import { AngularMaterialModule } from './angular-material.module';
 import { PostModule } from './posts/post.module';
 import { AuthModule } from './auth/auth.module';
 import { StoreModule } from '@ngrx/store';
-import { postReducer } from './posts/store/post.reducer';
+import { EffectsModule } from '@ngrx/effects';
+import { appReducer } from './store/app.reducer';
+import { PostEffects } from './posts/store/post.effects';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,8 @@ import { postReducer } from './posts/store/post.reducer';
     AngularMaterialModule,
     PostModule,
     AuthModule,
-    StoreModule.forRoot({"post":postReducer})
+    StoreModule.forRoot(appReducer),
+    EffectsModule.forRoot([PostEffects])
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },

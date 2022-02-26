@@ -1,37 +1,30 @@
-import { Action } from '@ngrx/store';
+import { createReducer, createSelector, on } from '@ngrx/store';
 import { Post } from '../post.model';
 import * as postAction from './post.action';
 
 export interface State {
-    post: Post[],
-    postCount: number
+  post: Post[];
+  postCount: number;
+  errorMsg: string;
 }
 
-export interface AppState {
-    post: State
-}
-
-const initialState:State = {
-   post:new Array<Post>(),
-   postCount: 0
+const initialState: State = {
+  post: new Array<Post>(),
+  postCount: 0,
+  errorMsg : null
 };
 
-export function postReducer(state = initialState,action:postAction.PostAction) {
-    switch(action.type){
-        case postAction.SET_POST: {
-            return {
-                ...state,
-                post : action.payload
-            }
-        }
-        case postAction.SET_POST_COUNT: {
-            return {
-                ...state,
-                postCount: action.payload
-            }
-        }
-        default : {
-            return state;
-        }
-    }
-}
+export const postReducer = createReducer(
+  initialState,
+  on(postAction.addPost, (state, { data, count }) => ({
+    ...state,
+    post: data,
+    postCount:count,
+    errorMsg: null
+  })),
+  on(postAction.getPostsError, (state, { errorMsg }) => ({
+    ...state,
+    errorMsg: errorMsg,
+  }))
+);
+

@@ -5,7 +5,8 @@ import { SignupComponent } from './signup/signup.component';
 import { AngularMaterialModule } from '../angular-material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AuthRoutingModule } from './auth-routing.module';
-
+import { StoreModule } from '@ngrx/store';
+import * as fromAuth from '../auth/store/auth.reducer';
 
 
 @NgModule({
@@ -18,7 +19,8 @@ import { AuthRoutingModule } from './auth-routing.module';
     ReactiveFormsModule,
     AngularMaterialModule,
     AuthRoutingModule,
-    FormsModule
+    FormsModule,
+    //StoreModule.forFeature(fromAuth.authFeatureKey,fromAuth.authReducer)
   ]
 })
 export class AuthModule { }

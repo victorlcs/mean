@@ -1,16 +1,17 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { PageEvent } from "@angular/material/paginator";
-import { Store } from "@ngrx/store";
-import { Subscription } from 'rxjs';
-import { AuthService } from "src/app/auth/auth.service";
-import { Post } from "../post.model";
-import { PostsService } from "../posts.service";
-import * as fromPost from "../store/post.reducer";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
+import { Store } from '@ngrx/store';
+import { map, Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth/auth.service';
+import { Post } from '../post.model';
+import { PostsService } from '../posts.service';
+import * as fromApp from '../../store/app.reducer';
+import * as postActions from '../store/post.action';
 
 @Component({
-  selector: "app-post-list",
-  templateUrl: "./post-list.component.html",
-  styleUrls: ["./post-list.component.scss"]
+  selector: 'app-post-list',
+  templateUrl: './post-list.component.html',
+  styleUrls: ['./post-list.component.scss'],
 })
 export class PostListComponent implements OnInit, OnDestroy {
   // posts = [
@@ -19,42 +20,66 @@ export class PostListComponent implements OnInit, OnDestroy {
   //   { title: "Third Post", content: "This is the third post's content" }
   // ];
   posts: Post[] = [];
-  private postsSub!: Subscription;
+  private postsSub: Subscription;
   private authStatusSub: Subscription;
   totalPosts = 0;
   postsPerPage = 2;
   currentPage = 1;
-  pageSizeOptions = [1,2,5,10];
+  pageSizeOptions = [1, 2, 5, 10];
   isLoading = false;
   userIsAuthenticated = false;
-  userId:string;
+  userId: string;
 
   constructor(
-    public postsService: PostsService, 
-    private authService:AuthService,
-    private PostStore:Store<fromPost.AppState>) {}
+    public postsService: PostsService,
+    private authService: AuthService,
+    private store: Store<fromApp.AppState>
+  ) {}
 
   ngOnInit() {
+    console.log('post-list init');
     this.isLoading = true;
-    this.postsService.getPosts(this.postsPerPage,this.currentPage);
-    this.userId = this.authService.getUserId();
-    // this.postsSub = this.postsService.getPostUpdateListener()
-    //   .subscribe((postData: {posts:Post[],postCount:number}) => {
-    //     this.isLoading = false;
-    //     this.posts = postData.posts;
-    //     this.totalPosts = postData.postCount;
-    //   });
-    this.PostStore.select('post').subscribe((postData) => {
-        console.log(postData);
-        this.isLoading = false;
-        this.posts = postData.post;
-        this.totalPosts = postData.postCount;
+
+    this.getPostsFromApi();
+
+    this.store.select('auth').subscribe((data) => {
+      this.userId = data.user.userId;
     });
-    this.userIsAuthenticated = this.authService.getIsAuth();
-    this.authStatusSub = this.authService.getAuthStatusListener().subscribe(isAuthenticated => {
-      this.userIsAuthenticated = isAuthenticated;
-      this.userId = this.authService.getUserId();
-    })
+
+    this.postsSub = this.store
+      .pipe(map((state) => fromApp.selectPosts(state)))
+      .subscribe({
+        next: (postData) => {
+          this.isLoading = false;
+          this.posts = postData.post;
+          this.totalPosts = postData.postCount;
+        },
+        error: (err) => {
+          console.log(err);
+        },
+      });
+
+    this.store.select('auth').subscribe((data) => {
+      console.log(data);
+      this.userIsAuthenticated = data.user.isAuthenticated;
+    });
+    this.authStatusSub = this.authService
+      .getAuthStatusListener()
+      .subscribe((isAuthenticated) => {
+        this.userIsAuthenticated = isAuthenticated;
+        this.store.select('auth').subscribe((data) => {
+          this.userId = data.user.userId;
+        });
+      });
+  }
+
+  getPostsFromApi() {
+    this.store.dispatch(
+      postActions.getPosts({
+        postsPerPage: this.postsPerPage,
+        currentPage: this.currentPage,
+      })
+    );
   }
 
   ngOnDestroy() {
@@ -65,16 +90,23 @@ export class PostListComponent implements OnInit, OnDestroy {
   onDelete(postId: string) {
     this.isLoading = true;
     this.postsService
-    .deletePost(postId).subscribe({next:()=>
-      this.postsService.getPosts(this.postsPerPage,this.currentPage),
-      error: () => this.isLoading = false
-    });
+      .deletePost(postId)
+      .subscribe({
+        next: () =>
+          this.postsService.getPosts(this.postsPerPage, this.currentPage),
+        error: () => (this.isLoading = false),
+      });
   }
 
-  onChangedPage(pageData:PageEvent){
+  onChangedPage(pageData: PageEvent) {
     this.isLoading = true;
     this.currentPage = pageData.pageIndex + 1;
     this.postsPerPage = pageData.pageSize;
-    this.postsService.getPosts(this.postsPerPage,this.currentPage);
+    //this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    this.getPostsFromApi();
+  }
+
+  test() {
+    console.log(this.postsSub.closed);
   }
 }

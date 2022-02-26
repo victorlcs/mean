@@ -5,8 +5,8 @@ import { map, Subject } from 'rxjs';
 import { Post } from './post.model';
 import { environment } from 'src/environments/environment';
 import { Store } from '@ngrx/store';
-import { AddPost, SetPostCount } from './store/post.action';
-import * as fromPost from "./store/post.reducer";
+import * as postActions from './store/post.action';
+import * as fromApp from '../store/app.reducer';
 
 const BACKEND_URL = environment.apiUrl + "/posts/";
 
@@ -18,7 +18,7 @@ export class PostsService {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private PostStore: Store<fromPost.AppState>) {}
+    private PostStore: Store<fromApp.AppState>) {}
 
   getPosts(postsPerPage: number, currentPage: number) {
     const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
@@ -45,9 +45,17 @@ export class PostsService {
       .subscribe((transformedPosts) => {
         //this.posts = transformedPosts.posts;
         //this.postsUpdated.next({posts:[...this.posts],postCount:transformedPosts.maxPosts});
-        this.PostStore.dispatch(new AddPost(transformedPosts.posts));
-        this.PostStore.dispatch(new SetPostCount(transformedPosts.maxPosts));
+        //this.PostStore.dispatch(new AddPost(transformedPosts.posts));
+        //this.PostStore.dispatch(new SetPostCount(transformedPosts.maxPosts));
       });
+  }
+
+  getPostsTest(postsPerPage: number, currentPage: number) {
+    const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
+    return this.http
+    .get<{ message: string; posts: any; maxPosts: number }>(
+      BACKEND_URL + queryParams
+    );
   }
 
   // getPostUpdateListener() {
