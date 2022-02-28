@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { Store } from '@ngrx/store';
-import { map, Subscription } from 'rxjs';
+import { from, map, Subscription, take } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 import { Post } from '../post.model';
 import { PostsService } from '../posts.service';
@@ -14,16 +14,11 @@ import * as postActions from '../store/post.action';
   styleUrls: ['./post-list.component.scss'],
 })
 export class PostListComponent implements OnInit, OnDestroy {
-  // posts = [
-  //   { title: "First Post", content: "This is the first post's content" },
-  //   { title: "Second Post", content: "This is the second post's content" },
-  //   { title: "Third Post", content: "This is the third post's content" }
-  // ];
   posts: Post[] = [];
   private postsSub: Subscription;
   private authStatusSub: Subscription;
   totalPosts = 0;
-  postsPerPage = 2;
+  postsPerPage = 0;
   currentPage = 1;
   pageSizeOptions = [1, 2, 5, 10];
   isLoading = false;
@@ -40,29 +35,29 @@ export class PostListComponent implements OnInit, OnDestroy {
     console.log('post-list init');
     this.isLoading = true;
 
+    this.store.select('post').subscribe({
+      next: (postData) => {
+        if (postData.postCount !== 0 && postData.post.length === 0) {
+          this.currentPage = this.currentPage - 1;
+          this.getPostsFromApi();
+        }
+        this.isLoading = false;
+        this.posts = postData.post;
+        this.totalPosts = postData.postCount;
+        this.postsPerPage = postData.pageSize; //Must get initial value before this.getPostsFromApi()
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
+
     this.getPostsFromApi();
 
     this.store.select('auth').subscribe((data) => {
       this.userId = data.user.userId;
-    });
-
-    this.postsSub = this.store
-      .pipe(map((state) => fromApp.selectPosts(state)))
-      .subscribe({
-        next: (postData) => {
-          this.isLoading = false;
-          this.posts = postData.post;
-          this.totalPosts = postData.postCount;
-        },
-        error: (err) => {
-          console.log(err);
-        },
-      });
-
-    this.store.select('auth').subscribe((data) => {
-      console.log(data);
       this.userIsAuthenticated = data.user.isAuthenticated;
     });
+
     this.authStatusSub = this.authService
       .getAuthStatusListener()
       .subscribe((isAuthenticated) => {
@@ -83,30 +78,26 @@ export class PostListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    //this.postsSub.unsubscribe();
     this.authStatusSub.unsubscribe();
   }
 
-  onDelete(postId: string) {
+  onDelete(postId: string, imagePath: string) {
     this.isLoading = true;
-    this.postsService
-      .deletePost(postId)
-      .subscribe({
-        next: () =>
-          this.postsService.getPosts(this.postsPerPage, this.currentPage),
-        error: () => (this.isLoading = false),
-      });
+    this.postsService.deletePost(postId, imagePath).subscribe({
+      next: () => {
+        this.getPostsFromApi();
+      },
+      error: () => (this.isLoading = false),
+    });
   }
 
   onChangedPage(pageData: PageEvent) {
     this.isLoading = true;
     this.currentPage = pageData.pageIndex + 1;
-    this.postsPerPage = pageData.pageSize;
-    //this.postsService.getPosts(this.postsPerPage, this.currentPage);
+    //this.postsPerPage = pageData.pageSize;
+    this.store.dispatch(
+      postActions.setPageCount({ pageCount: pageData.pageSize })
+    );
     this.getPostsFromApi();
-  }
-
-  test() {
-    console.log(this.postsSub.closed);
   }
 }

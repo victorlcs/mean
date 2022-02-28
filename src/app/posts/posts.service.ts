@@ -8,7 +8,7 @@ import { Store } from '@ngrx/store';
 import * as postActions from './store/post.action';
 import * as fromApp from '../store/app.reducer';
 
-const BACKEND_URL = environment.apiUrl + "/posts/";
+const BACKEND_URL = environment.apiUrl + '/posts/';
 
 @Injectable({ providedIn: 'root' })
 export class PostsService {
@@ -18,7 +18,8 @@ export class PostsService {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private PostStore: Store<fromApp.AppState>) {}
+    private PostStore: Store<fromApp.AppState>
+  ) {}
 
   getPosts(postsPerPage: number, currentPage: number) {
     const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
@@ -35,7 +36,7 @@ export class PostsService {
                 content: post.content,
                 id: post._id,
                 imagePath: post.imagePath,
-                creator: post.creator
+                creator: post.creator,
               };
             }),
             maxPosts: postData.maxPosts,
@@ -52,8 +53,7 @@ export class PostsService {
 
   getPostsTest(postsPerPage: number, currentPage: number) {
     const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
-    return this.http
-    .get<{ message: string; posts: any; maxPosts: number }>(
+    return this.http.get<{ message: string; posts: any; maxPosts: number }>(
       BACKEND_URL + queryParams
     );
   }
@@ -68,7 +68,7 @@ export class PostsService {
       title: string;
       content: string;
       imagePath: string;
-      creator:string;
+      creator: string;
     }>(BACKEND_URL + id);
   }
 
@@ -79,10 +79,7 @@ export class PostsService {
     postData.append('content', content);
     postData.append('image', image, title);
     this.http
-      .post<{ message: string; post: Post }>(
-        BACKEND_URL,
-        postData
-      )
+      .post<{ message: string; post: Post }>(BACKEND_URL, postData)
       .subscribe((res) => {
         this.router.navigate(['/']);
       });
@@ -103,18 +100,15 @@ export class PostsService {
         title: title,
         content: content,
         imagePath: image,
-        creator:null
+        creator: null,
       };
     }
-    this.http
-      .put(BACKEND_URL + id, postData)
-      .subscribe((res) => {
-        this.router.navigate(['/']);
-      });
+    this.http.put(BACKEND_URL + id, postData).subscribe((res) => {
+      this.router.navigate(['/']);
+    });
   }
 
-  deletePost(postId: string) {
-    return this.http
-      .delete(BACKEND_URL+ postId)
+  deletePost(postId: string, imagePath: string) {
+    return this.http.delete(BACKEND_URL + postId + `?imagepath=${imagePath}`);
   }
 }

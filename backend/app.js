@@ -9,6 +9,11 @@ const userRoutes = require("./routes/user"); //referring to user.js file
 
 const app = express();
 
+const options = {
+    reconnectTries: Number.MAX_VALUE, // Never stop trying to reconnect
+    reconnectInterval: 500, // Reconnect every 500ms
+}
+
 mongoose.connect(`mongodb+srv://victor:${process.env.MONGO_ATLAS_PW}@cluster0.exzto.mongodb.net/node-angular?retryWrites=true&w=majority`).then(
     ()=>{
         console.log('Connected to database!');

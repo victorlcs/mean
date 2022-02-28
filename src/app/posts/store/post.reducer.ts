@@ -6,12 +6,14 @@ export interface State {
   post: Post[];
   postCount: number;
   errorMsg: string;
+  pageSize: number;
 }
 
 const initialState: State = {
   post: new Array<Post>(),
   postCount: 0,
-  errorMsg : null
+  errorMsg: null,
+  pageSize: 2,
 };
 
 export const postReducer = createReducer(
@@ -19,12 +21,15 @@ export const postReducer = createReducer(
   on(postAction.addPost, (state, { data, count }) => ({
     ...state,
     post: data,
-    postCount:count,
-    errorMsg: null
+    postCount: count,
+    errorMsg: null,
   })),
   on(postAction.getPostsError, (state, { errorMsg }) => ({
     ...state,
     errorMsg: errorMsg,
+  })),
+  on(postAction.setPageCount, (state, { pageCount }) => ({
+    ...state,
+    pageSize: pageCount,
   }))
 );
-
