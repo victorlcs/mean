@@ -1,12 +1,18 @@
 const Post = require("../models/post");
-
+const environment = process.env.NODE_ENV || 'development';
 exports.insertPost = (req, res, next) => {
     //multer is a middleware for this route
-    const url = req.protocol + "://" + req.get("host");
+    //const url = req.protocol + "://" + req.get("host");
+    let url;
+      if(environment === 'development') {
+        url = req.protocol + "://" + req.get("host") + "/";
+      }else {
+        url = process.env.PROD_DOMAIN_URL;
+      }
     const post = new Post({
       title: req.body.title,
       content: req.body.content,
-      imagePath: url + "/images/" + req.file.filename,
+      imagePath: url + "images/" + req.file.filename,
       creator: req.userData.userId
     });
     post.save().then((result) => {
@@ -30,8 +36,13 @@ exports.insertPost = (req, res, next) => {
 exports.updatePost =  (req, res, next) => {
     let imagePath;
     if (req.file) {
-      const url = req.protocol + "://" + req.get("host");
-      imagePath = url + "/images/" + req.file.filename;
+      let url;
+      if(environment === 'development') {
+        url = req.protocol + "://" + req.get("host") + "/";
+      }else {
+        url = process.env.PROD_DOMAIN_URL;
+      }
+      imagePath = url + "images/" + req.file.filename;
     }
     const post = new Post({
       _id: req.params.id,

@@ -1,3 +1,4 @@
+const environment = process.env.NODE_ENV || 'development';
 const multer = require("multer");
 
 const MIME_TYPE_MAP = {
@@ -13,11 +14,8 @@ const MIME_TYPE_MAP = {
       if (isValid) {
         error = null;
       }
-      //For Production
-      //cb(error, "images"); //path is relative to server.js
+      environment === 'development'? cb(error, "backend/images") : cb(error, "images") ;
 
-      //For Development
-      cb(error, "backend/images"); //path is relative to server.js
     },
     filename: (req, file, cb) => {
       const name = file.originalname.toLowerCase().split(" ").join("-");
